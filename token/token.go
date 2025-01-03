@@ -13,6 +13,7 @@ const (
 
 	IDENT = "IDENT"
 	INT   = "INT"
+	FLOAT = "FLOAT"
 
 	ASSIGN = "="
 	PLUS   = "+"
@@ -28,3 +29,15 @@ const (
 	FUNCTION = "FUNCTION"
 	LET      = "LET"
 )
+
+var keywords = map[string]TokenType{
+	"fun": FUNCTION,
+	"let": LET,
+}
+
+func LookupIdent(ident string) TokenType {
+	if tok, ok := keywords[ident]; ok {
+		return tok
+	}
+	return IDENT
+}
