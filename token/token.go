@@ -23,12 +23,12 @@ const (
 	SLASH  = "/"
 	STAR   = "*"
 
-  EQ = "=="
-  NEQ = "!="
-	LT = "<"
-	LE = "<="
-	GT = ">"
-	GE = ">="
+	EQ  = "=="
+	NEQ = "!="
+	LT  = "<"
+	LE  = "<="
+	GT  = ">"
+	GE  = ">="
 
 	COMMA     = ","
 	SEMICOLON = ";"
