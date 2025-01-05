@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"fmt"
 	"io"
+	"waiig/eval"
 	"waiig/lexer"
 	"waiig/parser"
 )
@@ -21,6 +22,10 @@ func Start(in io.Reader, out io.Writer) {
 		}
 
 		line := scanner.Text()
+		if line == "exit()" {
+			break
+		}
+
 		l := lexer.New(line)
 		p := parser.New(l)
 
@@ -30,9 +35,15 @@ func Start(in io.Reader, out io.Writer) {
 			continue
 		}
 
+		evaluated := eval.Eval(program)
+		if evaluated != nil {
+			io.WriteString(out, evaluated.Inspect())
+			io.WriteString(out, "\n")
+		}
+
 		// Read Parse Print Loop
-		io.WriteString(out, program.String())
-		io.WriteString(out, "\n")
+		// io.WriteString(out, program.String())
+		// io.WriteString(out, "\n")
 
 		// Read Lex Print Loop
 		// for tok := l.NextToken(); tok.Type != token.EOF; tok = l.NextToken() {
