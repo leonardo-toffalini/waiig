@@ -166,6 +166,75 @@ func TestFloatLiteralExpression(t *testing.T) {
 	}
 }
 
+func TestBooleanExpression(t *testing.T) {
+	input := "false;"
+
+	l := lexer.New(input)
+	p := New(l)
+	program := p.ParseProgram()
+	checkParserErrors(t, p)
+
+	if len(program.Statements) != 1 {
+		t.Fatalf("program has not enough statements. got=%d",
+			len(program.Statements))
+	}
+
+	stmt, ok := program.Statements[0].(*ast.ExpressionStatement)
+	if !ok {
+		t.Fatalf("program.Statements[0] is not ast.ExpressionStatement. got=%T",
+			program.Statements[0])
+	}
+
+	ident, ok := stmt.Expression.(*ast.Boolean)
+	if !ok {
+		t.Fatalf("exp not *ast.Identifier. got=%T", stmt.Expression)
+	}
+	if ident.Value != false {
+		t.Errorf("ident.Value not %t. got=%t", true, ident.Value)
+	}
+	if ident.TokenLiteral() != "false" {
+		t.Errorf("ident.TokenLiteral not %s. got=%s", "false",
+			ident.TokenLiteral())
+	}
+}
+
+func TestIfExpression(t *testing.T) {
+	input := `if (x < y) { x } else { y }`
+	l := lexer.New(input)
+	p := New(l)
+	program := p.ParseProgram()
+  fmt.Println(program.Statements[0].String())
+	checkParserErrors(t, p)
+
+	if len(program.Statements) != 1 {
+		t.Fatalf("program.Body does not contain %d statements. got=%d\n", 1, len(program.Statements))
+	}
+
+	stmt, ok := program.Statements[0].(*ast.ExpressionStatement)
+	if !ok {
+		t.Fatalf("program.Statements[0] is not ast.ExpressionStatement. got=%T",
+			program.Statements[0])
+	}
+
+	exp, ok := stmt.Expression.(*ast.IfExpression)
+	if !ok {
+		t.Fatalf("stmt.Expression is not ast.IfExpression. got=%T",
+			stmt.Expression)
+	}
+
+	if len(exp.Consequence.Statements) != 1 {
+		t.Errorf("consequence is not 1 statements. got=%d\n", len(exp.Consequence.Statements))
+	}
+
+	if len(exp.Alternative.Statements) != 1 {
+		t.Errorf("consequence is not 1 statements. got=%d\n", len(exp.Alternative.Statements))
+	}
+
+  if exp.String() != "if (x < y) x else y" {
+		t.Errorf("exp.String is not %s. got=%s", "if (x < y) x else y", exp.String())
+  }
+}
+
 func TestParsingPrefixExpressions(t *testing.T) {
 	prefixTests := []struct {
 		input        string
@@ -313,6 +382,42 @@ func TestOperatorPrecedenceParsing(t *testing.T) {
 		{
 			"3 + 4 * 5 == 3 * 1 + 4 * 5",
 			"((3 + (4 * 5)) == ((3 * 1) + (4 * 5)))",
+		},
+		{
+			"true",
+			"true",
+		},
+		{
+			"false",
+			"false",
+		},
+		{
+			"42 < 50 == true",
+			"((42 < 50) == true)",
+		},
+		{
+			"42 > 50 == false",
+			"((42 > 50) == false)",
+		},
+		{
+			"42 < 50 == !false",
+			"((42 < 50) == (!false))",
+		},
+		{
+			"1 + (2 + 3) + 4",
+			"((1 + (2 + 3)) + 4)",
+		},
+		{
+			"(3.14 + 4.2) * 2.0",
+			"((3.14 + 4.2) * 2.0)",
+		},
+		{
+			"-(3 + 5)",
+			"(-(3 + 5))",
+		},
+		{
+			"!(true == !false)",
+			"(!(true == (!false)))",
 		},
 	}
 	for _, tt := range tests {
