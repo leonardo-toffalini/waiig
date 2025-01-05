@@ -27,10 +27,11 @@ let foobar = 838383;
 	}
 	tests := []struct {
 		expectedIdentifier string
+		expectedValue      interface{}
 	}{
-		{"x"},
-		{"y"},
-		{"foobar"},
+		{"x", 5},
+		{"y", 10},
+		{"foobar", 838383},
 	}
 	for i, tt := range tests {
 		stmt := program.Statements[i]
@@ -290,6 +291,58 @@ func TestFunctionParameterParsing(t *testing.T) {
 	}
 }
 
+func TestCallExpressionParsing(t *testing.T) {
+	input := "add(1, 2 * 3, 4 + 5);"
+	l := lexer.New(input)
+	p := New(l)
+	program := p.ParseProgram()
+	checkParserErrors(t, p)
+
+	if len(program.Statements) != 1 {
+		t.Fatalf("program.Statements does not contain %d statements. got=%d\n", 1, len(program.Statements))
+	}
+
+	stmt, ok := program.Statements[0].(*ast.ExpressionStatement)
+	if !ok {
+		t.Fatalf("stmt is not ast.ExpressionStatement. got=%T",
+			program.Statements[0])
+	}
+
+	exp, ok := stmt.Expression.(*ast.CallExpression)
+	if !ok {
+		t.Fatalf("stmt.Expression is not ast.CallExpression. got=%T",
+			stmt.Expression)
+	}
+
+	if len(exp.Arguments) != 3 {
+		t.Fatalf("wrong length of arguments. got=%d", len(exp.Arguments))
+	}
+}
+
+func TestCallExpressionArgumentParsing(t *testing.T) {
+	tests := []struct {
+		input        string
+		expectedArgs []string
+	}{
+		{input: "f();", expectedArgs: []string{}},
+		{input: "f(x);", expectedArgs: []string{"x"}},
+		{input: "f(x, y, z);", expectedArgs: []string{"x", "y", "z"}},
+	}
+
+	for _, tt := range tests {
+		l := lexer.New(tt.input)
+		p := New(l)
+		program := p.ParseProgram()
+		checkParserErrors(t, p)
+
+		stmt := program.Statements[0].(*ast.ExpressionStatement)
+		function := stmt.Expression.(*ast.CallExpression)
+		if len(function.Arguments) != len(tt.expectedArgs) {
+			t.Errorf("length parameters wrong. want %d, got=%d\n", len(tt.expectedArgs), len(function.Arguments))
+		}
+	}
+}
+
 func TestParsingPrefixExpressions(t *testing.T) {
 	prefixTests := []struct {
 		input        string
@@ -474,6 +527,10 @@ func TestOperatorPrecedenceParsing(t *testing.T) {
 			"!(true == !false)",
 			"(!(true == (!false)))",
 		},
+		{
+			"a + f(b * c) - d",
+			"((a + f((b * c))) - d)",
+		},
 	}
 	for _, tt := range tests {
 		l := lexer.New(tt.input)
@@ -534,7 +591,7 @@ func testLetStatement(t *testing.T, s ast.Statement, name string) bool {
 		return false
 	}
 	if letStmt.Name.TokenLiteral() != name {
-		t.Errorf("s.Name not '%s'. got=%s", name, letStmt.Name)
+		t.Errorf("letStmt.Name not '%s'. got=%s", name, letStmt.Name)
 		return false
 	}
 	return true
