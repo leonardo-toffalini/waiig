@@ -203,7 +203,6 @@ func TestIfExpression(t *testing.T) {
 	l := lexer.New(input)
 	p := New(l)
 	program := p.ParseProgram()
-  fmt.Println(program.Statements[0].String())
 	checkParserErrors(t, p)
 
 	if len(program.Statements) != 1 {
@@ -218,8 +217,7 @@ func TestIfExpression(t *testing.T) {
 
 	exp, ok := stmt.Expression.(*ast.IfExpression)
 	if !ok {
-		t.Fatalf("stmt.Expression is not ast.IfExpression. got=%T",
-			stmt.Expression)
+		t.Fatalf("stmt.Expression is not ast.IfExpression. got=%T", stmt.Expression)
 	}
 
 	if len(exp.Consequence.Statements) != 1 {
@@ -230,9 +228,66 @@ func TestIfExpression(t *testing.T) {
 		t.Errorf("consequence is not 1 statements. got=%d\n", len(exp.Alternative.Statements))
 	}
 
-  if exp.String() != "if (x < y) x else y" {
+	if exp.String() != "if (x < y) x else y" {
 		t.Errorf("exp.String is not %s. got=%s", "if (x < y) x else y", exp.String())
-  }
+	}
+}
+
+func TestFunctionLiteralParsing(t *testing.T) {
+	input := `fun (x, y) { x + y; }`
+	l := lexer.New(input)
+	p := New(l)
+	program := p.ParseProgram()
+	checkParserErrors(t, p)
+
+	if len(program.Statements) != 1 {
+		t.Fatalf("program.Body does not contain %d statements. got=%d\n", 1, len(program.Statements))
+	}
+
+	stmt, ok := program.Statements[0].(*ast.ExpressionStatement)
+	if !ok {
+		t.Fatalf("program.Statements[0] is not ast.ExpressionStatement. got=%T",
+			program.Statements[0])
+	}
+
+	exp, ok := stmt.Expression.(*ast.FunctionLiteral)
+	if !ok {
+		t.Fatalf("stmt.Expression is not ast.FunctionLiteral. got=%T", stmt.Expression)
+	}
+
+	if len(exp.Parameters) != 2 {
+		t.Errorf("parameters is not 2 identifiers. got=%d\n", len(exp.Parameters))
+	}
+
+	if len(exp.Body.Statements) != 1 {
+		t.Errorf("body is not 1 statement. got=%d\n", len(exp.Body.Statements))
+	}
+
+	if exp.String() != "fun(x, y) (x + y)" {
+		t.Errorf("exp.String is not %s. got=%s", "fun(x, y) (x + y)", exp.String())
+	}
+}
+
+func TestFunctionParameterParsing(t *testing.T) {
+	tests := []struct {
+		input          string
+		expectedParams []string
+	}{
+		{input: "fun() {};", expectedParams: []string{}},
+		{input: "fun(x) {};", expectedParams: []string{"x"}},
+		{input: "fun(x, y, z) {};", expectedParams: []string{"x", "y", "z"}},
+	}
+	for _, tt := range tests {
+		l := lexer.New(tt.input)
+		p := New(l)
+		program := p.ParseProgram()
+		checkParserErrors(t, p)
+		stmt := program.Statements[0].(*ast.ExpressionStatement)
+		function := stmt.Expression.(*ast.FunctionLiteral)
+		if len(function.Parameters) != len(tt.expectedParams) {
+			t.Errorf("length parameters wrong. want %d, got=%d\n", len(tt.expectedParams), len(function.Parameters))
+		}
+	}
 }
 
 func TestParsingPrefixExpressions(t *testing.T) {
