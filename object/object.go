@@ -11,6 +11,7 @@ import (
 type ObjectType string
 
 const (
+	STRING_OBJ       = "STRING"
 	INTEGER_OBJ      = "INTEGER"
 	FLOAT_OBJ        = "FLOAT"
 	BOOLEAN_OBJ      = "BOOLEAN"
@@ -23,6 +24,10 @@ const (
 type Object interface {
 	Type() ObjectType
 	Inspect() string
+}
+
+type String struct {
+	Value string
 }
 
 type Integer struct {
@@ -52,6 +57,9 @@ type Error struct {
 }
 
 type Null struct{}
+
+func (s *String) Inspect() string  { return s.Value }
+func (s *String) Type() ObjectType { return STRING_OBJ }
 
 func (i *Integer) Inspect() string  { return fmt.Sprintf("%d", i.Value) }
 func (i *Integer) Type() ObjectType { return INTEGER_OBJ }

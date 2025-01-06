@@ -7,6 +7,32 @@ import (
 	"waiig/parser"
 )
 
+func TestStringLiteral(t *testing.T) {
+	input := `"Hello World!"`
+
+	evaluated := testEval(input)
+	str, ok := evaluated.(*object.String)
+	if !ok {
+		t.Fatalf("object is not String. got=%T (%+v)", evaluated, evaluated)
+	}
+	if str.Value != "Hello World!" {
+		t.Errorf("String has wrong value. got=%q", str.Value)
+	}
+}
+
+func TestStringConcatenation(t *testing.T) {
+	input := `"Hello" + " " + "World!"`
+
+	evaluated := testEval(input)
+	str, ok := evaluated.(*object.String)
+	if !ok {
+		t.Fatalf("object is not String. got=%T (%+v)", evaluated, evaluated)
+		if str.Value != "Hello World!" {
+			t.Errorf("String has wrong value. got=%q", str.Value)
+		}
+	}
+}
+
 func TestEvalIntegerExpression(t *testing.T) {
 	tests := []struct {
 		input    string
@@ -206,6 +232,10 @@ func TestErrorHandling(t *testing.T) {
 		{
 			"foobar",
 			"identifier not found: foobar",
+		},
+		{
+			`"Hello" - "World"`,
+			"unknown operator: STRING - STRING",
 		},
 	}
 
