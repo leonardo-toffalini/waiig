@@ -61,6 +61,11 @@ type FloatLiteral struct {
 	Value float64
 }
 
+type ArrayLiteral struct {
+	Token    token.Token // the `[` token
+	Elements []Expression
+}
+
 type PrefixExpression struct {
 	Token    token.Token // the prefix token, for example `!` or `-`
 	Operator string
@@ -101,6 +106,12 @@ type CallExpression struct {
 	Token     token.Token // the `(` token
 	Function  Expression  // Function Identifier or FunctionLiteral
 	Arguments []Expression
+}
+
+type IndexExpression struct {
+	Token token.Token // the `[` token
+	Left  Expression  // the expression being indexed
+	Index Expression
 }
 
 func (p *Program) TokenLiteral() string {
@@ -177,6 +188,23 @@ func (il *IntegerLiteral) String() string       { return il.Token.Literal }
 func (fl *FloatLiteral) expressionNode()      {}
 func (fl *FloatLiteral) TokenLiteral() string { return fl.Token.Literal }
 func (fl *FloatLiteral) String() string       { return fl.Token.Literal }
+
+func (al *ArrayLiteral) expressionNode()      {}
+func (al *ArrayLiteral) TokenLiteral() string { return al.Token.Literal }
+func (al *ArrayLiteral) String() string {
+	var out bytes.Buffer
+
+	elements := []string{}
+	for _, e := range al.Elements {
+		elements = append(elements, e.String())
+	}
+
+	out.WriteString("[")
+	out.WriteString(strings.Join(elements, ", "))
+	out.WriteString("]")
+
+	return out.String()
+}
 
 func (pe *PrefixExpression) expressionNode()      {}
 func (pe *PrefixExpression) TokenLiteral() string { return pe.Token.Literal }
@@ -274,4 +302,18 @@ func (ce *CallExpression) String() string {
 	out.WriteString(")")
 
 	return out.String()
+}
+
+func (ie *IndexExpression) expressionNode()      {}
+func (ie *IndexExpression) TokenLiteral() string { return ie.Token.Literal }
+func (ie *IndexExpression) String() string {
+  var out bytes.Buffer
+
+  out.WriteString("(")
+  out.WriteString(ie.Left.String())
+  out.WriteString("[")
+  out.WriteString(ie.Index.String())
+  out.WriteString("])")
+
+  return out.String()
 }

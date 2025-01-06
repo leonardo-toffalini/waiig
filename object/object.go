@@ -19,6 +19,7 @@ const (
 	RETURN_VALUE_OBJ = "RETURN_VALUE"
 	FUNCTION_OBJ     = "FUNCTION"
 	BUILTIN_OBJ      = "BUILTIN"
+	ARRAY_OBJ        = "ARRAY"
 	ERROR_OBJ        = "ERROR"
 )
 
@@ -53,6 +54,10 @@ type Function struct {
 	Parameters []*ast.Identifier
 	Body       *ast.BlockStatement
 	Env        *Environment
+}
+
+type Array struct {
+	Elements []Object
 }
 
 type Builtin struct {
@@ -101,6 +106,22 @@ func (f *Function) Type() ObjectType { return FUNCTION_OBJ }
 
 func (b *Builtin) Inspect() string  { return BUILTIN_OBJ }
 func (b *Builtin) Type() ObjectType { return "builtin function" }
+
+func (a *Array) Type() ObjectType { return ARRAY_OBJ }
+func (a *Array) Inspect() string {
+	var out bytes.Buffer
+
+	elements := []string{}
+	for _, e := range a.Elements {
+		elements = append(elements, e.Inspect())
+	}
+
+	out.WriteString("[")
+	out.WriteString(strings.Join(elements, ", "))
+	out.WriteString("]")
+
+	return out.String()
+}
 
 func (e *Error) Inspect() string  { return "ERROR: " + e.Message }
 func (e *Error) Type() ObjectType { return ERROR_OBJ }

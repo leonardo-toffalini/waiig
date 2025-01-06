@@ -19,7 +19,8 @@ let result = add(five, ten); true false if else return;
 9 <= 10 >= 10;
 let pi = 3.14;
 "foobar"
-"baz bar"`
+"baz bar"
+[1, 2, 3]`
 
 	tests := []struct {
 		expectedType    token.TokenType
@@ -101,6 +102,13 @@ let pi = 3.14;
 		{token.SEMICOLON, ";"},
 		{token.STRING, "foobar"},
 		{token.STRING, "baz bar"},
+		{token.LBRACKET, "["},
+		{token.INT, "1"},
+		{token.COMMA, ","},
+		{token.INT, "2"},
+		{token.COMMA, ","},
+		{token.INT, "3"},
+		{token.RBRACKET, "]"},
 		{token.EOF, ""},
 	}
 	// let result = add(five, ten); true false if else return`
