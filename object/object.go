@@ -18,6 +18,7 @@ const (
 	NULL_OBJ         = "NULL"
 	RETURN_VALUE_OBJ = "RETURN_VALUE"
 	FUNCTION_OBJ     = "FUNCTION"
+	BUILTIN_OBJ      = "BUILTIN"
 	ERROR_OBJ        = "ERROR"
 )
 
@@ -25,6 +26,8 @@ type Object interface {
 	Type() ObjectType
 	Inspect() string
 }
+
+type BuiltinFunction func(args ...Object) Object
 
 type String struct {
 	Value string
@@ -50,6 +53,10 @@ type Function struct {
 	Parameters []*ast.Identifier
 	Body       *ast.BlockStatement
 	Env        *Environment
+}
+
+type Builtin struct {
+	Fn BuiltinFunction
 }
 
 type Error struct {
@@ -91,6 +98,9 @@ func (f *Function) Inspect() string {
 	return out.String()
 }
 func (f *Function) Type() ObjectType { return FUNCTION_OBJ }
+
+func (b *Builtin) Inspect() string  { return BUILTIN_OBJ }
+func (b *Builtin) Type() ObjectType { return "builtin function" }
 
 func (e *Error) Inspect() string  { return "ERROR: " + e.Message }
 func (e *Error) Type() ObjectType { return ERROR_OBJ }

@@ -159,13 +159,19 @@ func evalExpressions(exps []ast.Expression, env *object.Environment) []object.Ob
 }
 
 func applyFunction(fun object.Object, args []object.Object) object.Object {
-	function, ok := fun.(*object.Function)
-	if !ok {
+	switch fun := fun.(type) {
+	case *object.Function:
+		extendedEnv := extendFunctionEnv(fun, args)
+		evaluated := Eval(fun.Body, extendedEnv)
+		return unwrapReturnValue(evaluated)
+
+	case *object.Builtin:
+		return fun.Fn(args...)
+
+	default:
 		return newError("not a function: %s", fun.Type())
 	}
-	extendedEnv := extendFunctionEnv(function, args)
-	evaluated := Eval(function.Body, extendedEnv)
-	return unwrapReturnValue(evaluated)
+
 }
 
 func extendFunctionEnv(fun *object.Function, args []object.Object) *object.Environment {
@@ -201,11 +207,15 @@ func evalIfExpression(ie *ast.IfExpression, env *object.Environment) object.Obje
 }
 
 func evalIdentifier(node *ast.Identifier, env *object.Environment) object.Object {
-	val, ok := env.Get(node.Value)
-	if !ok {
-		return newError("identifier not found: %s", node.Value)
+	if val, ok := env.Get(node.Value); ok {
+		return val
 	}
-	return val
+
+	if builtin, ok := builtins[node.Value]; ok {
+		return builtin
+	}
+
+	return newError("identifier not found: %s", node.Value)
 }
 
 func evalPrefixExpression(operator string, right object.Object) object.Object {
@@ -273,10 +283,10 @@ func evalStringInfixExpression(operator string, left object.Object, right object
 	switch operator {
 	case "+":
 		return &object.String{Value: leftVal + rightVal}
-  case "==":
-    return nativeBoolToBooleanObject(leftVal == rightVal)
-  case "!=":
-    return nativeBoolToBooleanObject(leftVal != rightVal)
+	case "==":
+		return nativeBoolToBooleanObject(leftVal == rightVal)
+	case "!=":
+		return nativeBoolToBooleanObject(leftVal != rightVal)
 	default:
 		return newError("unknown operator: %s %s %s", left.Type(), operator, right.Type())
 	}
