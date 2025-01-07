@@ -1,11 +1,21 @@
 package eval
 
 import (
+	"fmt"
 	"os"
 	"waiig/object"
 )
 
 var builtins = map[string]*object.Builtin{
+	"print": {
+		Fn: func(args ...object.Object) object.Object {
+			for _, arg := range args {
+				fmt.Printf(arg.Inspect())
+			}
+			return NULL_OBJ
+		},
+	},
+
 	"len": {
 		Fn: func(args ...object.Object) object.Object {
 			if len(args) != 1 {
