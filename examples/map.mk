@@ -26,10 +26,17 @@ let print_arr = fun(arr) {
 	print("]")
 }
 
-let a = [1, 2, 3, 4];
+let a = [0, 1, 2, 3, 4, 5, 6];
 let double = fun(x) { 2 * x; }
+
+let fib = fun(n) {
+	if (n == 0) { return 1; }
+	if (n == 1) { return 1; }
+	return fib(n-1) + fib(n-2);
+}
 
 let double_a = map(a, double);
 
 print_arr(a);
 print_arr(double_a);
+print_arr(map(a, fib))
